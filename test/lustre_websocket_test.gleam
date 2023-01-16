@@ -6,13 +6,10 @@ pub fn main() {
 }
 
 pub type Wrapper {
-  Wrapper(String)
+  Wrapper(ws.WebSocketEvent)
 }
 
-pub fn compilation_test() {
-  let socket = ws.init("/blah")
-  ws.register(socket, Wrapper)
-
+pub fn rather_thin_compilation_test() {
+  let _cmd = ws.init("/blah", Wrapper)
   // We cannot run the resulting lustre.Cmd, but we can at least ensure it can be used/compiled this way
-  ws.send(socket, "hello")
 }

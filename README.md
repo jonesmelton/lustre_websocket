@@ -18,14 +18,25 @@ Typical usage looks like
 import lustre_websocket as ws
 
 pub type Msg {
-  MsgReceived(String)
+  WsWrapper(ws.WebSocketEvent)
 }
 
-let socket = ws.init("/path")
-let init = #(model.init(socket), ws.register(socket, MsgReceived))
+let init = #(Model(None), ws.init("/path", WsWrapper))
 ```
 and then you pass `init` as first argument to `lustre.application`.
-But you can create and register a socket at any time.
+But you can create a socket at any time, esp. re-create it after it is closed by the server.
+
+The events can be handled like this:
+```
+update(model, msg) {
+  case msg {
+    WsWrapper(OnOpen(socket)) -> #(Model(..model, ws: Some(socket)), ws.send(socket, "client-init"))
+    WsWrapper(OnMessage(msg)) -> todo
+    WsWrapper(OnClose(reason)) -> #(Model(..model, ws: None), cmd.none())
+  }
+}
+```
+which also demonstrates how you send a text message over the socket.
 
 ### Caveat
 
@@ -33,6 +44,8 @@ But you can create and register a socket at any time.
 
 ### TODO:
  * support protocol choice, including one websocket per protocol per endpoint
- * re-open the websocket when it is closed
+ * support binary data
  * allow client to close the socket
- * provide more information (open/error) to the application?
+ * provide errors to the application, when I have a clue on what those might actually be
+ * prevent sending over closed sockets
+ * maybe auto-reopen sockets that were closed because of Normal

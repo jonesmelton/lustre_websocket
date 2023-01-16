@@ -1,6 +1,6 @@
 let ws_handler_registry = {}
 
-export const init_websocket = (path) => {
+export const init_websocket = path => {
     let ws
     if (typeof WebSocket === "function") {
         // we're in the browser
@@ -12,19 +12,29 @@ export const init_websocket = (path) => {
         // we're NOT in the browser, prolly running tests
         ws = {}
     }
-    console.log("ws init", ws)
-    ws.onopen = () => console.log("ws", ws.url, "opened")
-    ws.onclose = () => {
-        console.log("ws", ws.url, "closed");
-        delete ws_handler_registry[ws.url]
+    ws_handler_registry[ws.url] = {ws: ws}
+    console.log("ws init", ws, ws_handler_registry)
+
+    ws.onopen = evt => {
+        ws_handler_registry[ws.url]?.on_open?.()
+        console.log("ws", ws.url, "opened", evt)
     }
-    ws.onmessage = event => ws_handler_registry[ws.url](event.data)
-    ws.onerror = error => console.log("ws", ws.url, "error", error)
+    ws.onclose = evt => {
+        ws_handler_registry[ws.url]?.on_close?.(evt.code)
+        delete ws_handler_registry[ws.url]
+        console.log("ws", ws.url, "closed", evt, ws_handler_registry)
+    }
+    ws.onmessage = event => ws_handler_registry[ws.url]?.on_message?.(event.data)
+    ws.onerror = error => console.log("ws", ws.url, "error", error, "no handler, since I have no clue what errors we might be talking about")
     return ws
 }
 
-export const register_websocket_handler = (ws, handler) => {
-    ws_handler_registry[ws.url] = handler
+export const register_websocket_handler = (ws, on_open, on_message, on_close) => {
+    console.log("do_register", ws, on_open, on_message, on_close)
+    const reg_entry = ws_handler_registry[ws.url]
+    reg_entry.on_open = on_open
+    reg_entry.on_message = on_message
+    reg_entry.on_close = on_close
     console.log("ws reg", ws_handler_registry)
 }
 
