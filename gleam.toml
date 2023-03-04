@@ -1,13 +1,14 @@
 name = "lustre_websocket"
-version = "0.5.0"
+version = "0.5.1"
 target = "javascript"
 
 licences = ["MIT"]
 description = "Web Socket requests from lustre"
-repository = { type = "custom", url = "git://chmeee.org/lustre_websocket" }
+repository = { type = "custom", url = "https://git.chmeee.org/lustre_websocket" }
 links = [
-    { title = "Package", href = "https://hex.pm/packages/lustre_websocket" }    ]
-dev-dependencies = { gleeunit = "~> 0.9"}
+    { title = "Package", href = "https://hex.pm/packages/lustre_websocket" },
+]
+dev-dependencies = { gleeunit = "~> 0.9" }
 
 [dependencies]
 gleam_stdlib = "~> 0.25"

@@ -67,7 +67,12 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Cmd(a) {
 external fn do_init(path) -> WebSocket =
   "./ffi.mjs" "init_websocket"
 
-external fn do_register(ws: WebSocket, on_open, on_message, on_close) -> Nil =
+external fn do_register(
+  ws: WebSocket,
+  on_open: fn() -> Nil,
+  on_message: fn(String) -> Nil,
+  on_close: fn(Int) -> Nil,
+) -> Nil =
   "./ffi.mjs" "register_websocket_handler"
 
 /// Send a text message over the web socket. This is asynchronous. There is no
