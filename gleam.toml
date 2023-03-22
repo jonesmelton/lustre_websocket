@@ -12,4 +12,4 @@ dev-dependencies = { gleeunit = "~> 0.9" }
 
 [dependencies]
 gleam_stdlib = "~> 0.25"
-lustre = "~> 1.3"
+lustre = "~> 2.0"
