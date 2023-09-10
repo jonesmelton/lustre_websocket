@@ -14,9 +14,7 @@ export const init_websocket = path => {
     }
     ws_handler_registry[ws.url] = { ws: ws }
 
-    ws.onopen = evt => {
-        ws_handler_registry[ws.url]?.on_open?.()
-    }
+    ws.onopen = evt => ws_handler_registry[ws.url]?.on_open?.()
     ws.onclose = evt => {
         ws_handler_registry[ws.url]?.on_close?.(evt.code)
         delete ws_handler_registry[ws.url]

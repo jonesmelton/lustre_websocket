@@ -1,6 +1,6 @@
 import lustre/cmd.{Cmd}
 
-pub external type WebSocket
+pub type WebSocket
 
 pub type WebSocketCloseReason {
   // 1000
@@ -64,16 +64,14 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Cmd(a) {
   cmd.from(fun)
 }
 
-external fn do_init(path) -> WebSocket =
-  "./ffi.mjs" "init_websocket"
+@external(javascript, "./ffi.mjs", "init_websocket")
+fn do_init(a: path) -> WebSocket
 
-external fn do_register(
-  ws: WebSocket,
-  on_open: fn() -> Nil,
-  on_message: fn(String) -> Nil,
-  on_close: fn(Int) -> Nil,
-) -> Nil =
-  "./ffi.mjs" "register_websocket_handler"
+@external(javascript, "./ffi.mjs", "register_websocket_handler")
+fn do_register(ws ws: WebSocket, on_open on_open: fn() -> Nil, on_message on_message: fn(
+    String,
+  ) ->
+    Nil, on_close on_close: fn(Int) -> Nil) -> Nil
 
 /// Send a text message over the web socket. This is asynchronous. There is no
 /// expectation of a reply. See `init`. Only works on an Non-Closed socket.
@@ -82,5 +80,5 @@ pub fn send(ws: WebSocket, msg: String) -> Cmd(a) {
   cmd.from(fn(_) { do_send(ws, msg) })
 }
 
-external fn do_send(ws: WebSocket, msg: String) -> Nil =
-  "./ffi.mjs" "send_over_websocket"
+@external(javascript, "./ffi.mjs", "send_over_websocket")
+fn do_send(ws ws: WebSocket, msg msg: String) -> Nil
