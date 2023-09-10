@@ -1,4 +1,4 @@
-import lustre/cmd.{Cmd}
+import lustre/effect.{Effect}
 
 pub type WebSocket
 
@@ -38,7 +38,7 @@ pub type WebSocketEvent {
 
 /// Initialize a websocket. These constructs are fully asynchronous, so you must provide a wrapper
 /// that takes a `WebSocketEvent` and turns it into a lustre message of your application.
-pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Cmd(a) {
+pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
   let ws = do_init(path)
   let fun = fn(dispatch) {
     let on_open = fn() { dispatch(wrapper(OnOpen(ws))) }
@@ -61,7 +61,7 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Cmd(a) {
     }
     do_register(ws, on_open, on_message, on_close)
   }
-  cmd.from(fun)
+  effect.from(fun)
 }
 
 @external(javascript, "./ffi.mjs", "init_websocket")
@@ -75,9 +75,9 @@ fn do_register(ws ws: WebSocket, on_open on_open: fn() -> Nil, on_message on_mes
 
 /// Send a text message over the web socket. This is asynchronous. There is no
 /// expectation of a reply. See `init`. Only works on an Non-Closed socket.
-/// Returns a `Cmd(a)` that you must pass as second entry in the lustre `update` return.
-pub fn send(ws: WebSocket, msg: String) -> Cmd(a) {
-  cmd.from(fn(_) { do_send(ws, msg) })
+/// Returns a `Effect(a)` that you must pass as second entry in the lustre `update` return.
+pub fn send(ws: WebSocket, msg: String) -> Effect(a) {
+  effect.from(fn(_) { do_send(ws, msg) })
 }
 
 @external(javascript, "./ffi.mjs", "send_over_websocket")
