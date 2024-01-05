@@ -6,7 +6,7 @@ export const init_websocket = path => {
         // we're in the browser
         let url = new URL(document.URL)
         let protocol = url.protocol === "http:" ? "ws" : "wss"
-        let ws_url = protocol + "://" + url.host + url.pathname + path
+        let ws_url = protocol + "://" + url.host + (path.startsWith("/") ? path : url.pathname + path)
         ws = new WebSocket(ws_url)
     } else {
         // we're NOT in the browser, prolly running tests
