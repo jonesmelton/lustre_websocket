@@ -21,7 +21,9 @@ pub type Msg {
   WsWrapper(ws.WebSocketEvent)
 }
 
-let init = #(Model(None), ws.init("/path", WsWrapper))
+fn init {
+  #(Model(None), ws.init("/path", WsWrapper))
+}
 ```
 and then you pass `init` as first argument to `lustre.application`.
 But you can create a socket at any time, esp. re-create it after it is closed by the server.
@@ -32,7 +34,7 @@ update(model, msg) {
   case msg {
     WsWrapper(OnOpen(socket)) -> #(Model(..model, ws: Some(socket)), ws.send(socket, "client-init"))
     WsWrapper(OnMessage(msg)) -> todo
-    WsWrapper(OnClose(reason)) -> #(Model(..model, ws: None), cmd.none())
+    WsWrapper(OnClose(reason)) -> #(Model(..model, ws: None), effect.none())
   }
 }
 ```

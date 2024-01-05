@@ -1,4 +1,4 @@
-import lustre/effect.{Effect}
+import lustre/effect.{type Effect}
 
 pub type WebSocket
 
@@ -28,6 +28,8 @@ pub type WebSocketCloseReason {
   UnexpectedFailure
   // 1015
   FailedTLSHandshake
+  // unlisted
+  OtherCloseReason
 }
 
 pub type WebSocketEvent {
@@ -57,6 +59,7 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
         1010 -> dispatch(wrapper(OnClose(FailedExtensionNegotation)))
         1011 -> dispatch(wrapper(OnClose(UnexpectedFailure)))
         1015 -> dispatch(wrapper(OnClose(FailedTLSHandshake)))
+        _ -> dispatch(wrapper(OnClose(OtherCloseReason)))
       }
     }
     do_register(ws, on_open, on_message, on_close)
@@ -68,10 +71,12 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
 fn do_init(a: path) -> WebSocket
 
 @external(javascript, "./ffi.mjs", "register_websocket_handler")
-fn do_register(ws ws: WebSocket, on_open on_open: fn() -> Nil, on_message on_message: fn(
-    String,
-  ) ->
-    Nil, on_close on_close: fn(Int) -> Nil) -> Nil
+fn do_register(
+  ws ws: WebSocket,
+  on_open on_open: fn() -> Nil,
+  on_message on_message: fn(String) -> Nil,
+  on_close on_close: fn(Int) -> Nil,
+) -> Nil
 
 /// Send a text message over the web socket. This is asynchronous. There is no
 /// expectation of a reply. See `init`. Only works on an Non-Closed socket.

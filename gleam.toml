@@ -1,5 +1,5 @@
 name = "lustre_websocket"
-version = "0.7.0"
+version = "0.7.1"
 target = "javascript"
 
 licences = ["MIT"]
@@ -11,5 +11,5 @@ links = [
 dev-dependencies = { gleeunit = "~> 0.9" }
 
 [dependencies]
-gleam_stdlib = "~> 0.25"
+gleam_stdlib = "~> 0.32"
 lustre = "~> 3.0"
