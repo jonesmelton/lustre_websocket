@@ -47,20 +47,23 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
     let on_message = fn(in_msg) { dispatch(wrapper(OnMessage(in_msg))) }
     let on_close = fn(code) {
       case code {
-        1000 -> dispatch(wrapper(OnClose(Normal)))
-        1001 -> dispatch(wrapper(OnClose(GoingAway)))
-        1002 -> dispatch(wrapper(OnClose(ProtocolError)))
-        1003 -> dispatch(wrapper(OnClose(UnexpectedTypeOfData)))
-        1005 -> dispatch(wrapper(OnClose(NoCodeFromServer)))
-        1006 -> dispatch(wrapper(OnClose(AbnormalClose)))
-        1007 -> dispatch(wrapper(OnClose(IncomprehensibleFrame)))
-        1008 -> dispatch(wrapper(OnClose(PolicyViolated)))
-        1009 -> dispatch(wrapper(OnClose(MessageTooBig)))
-        1010 -> dispatch(wrapper(OnClose(FailedExtensionNegotation)))
-        1011 -> dispatch(wrapper(OnClose(UnexpectedFailure)))
-        1015 -> dispatch(wrapper(OnClose(FailedTLSHandshake)))
-        _ -> dispatch(wrapper(OnClose(OtherCloseReason)))
+        1000 -> Normal
+        1001 -> GoingAway
+        1002 -> ProtocolError
+        1003 -> UnexpectedTypeOfData
+        1005 -> NoCodeFromServer
+        1006 -> AbnormalClose
+        1007 -> IncomprehensibleFrame
+        1008 -> PolicyViolated
+        1009 -> MessageTooBig
+        1010 -> FailedExtensionNegotation
+        1011 -> UnexpectedFailure
+        1015 -> FailedTLSHandshake
+        _ -> OtherCloseReason
       }
+      |> OnClose
+      |> wrapper
+      |> dispatch
     }
     do_register(ws, on_open, on_message, on_close)
   }
