@@ -4,7 +4,7 @@ target = "javascript"
 
 licences = ["MIT"]
 description = "Web Socket requests from lustre"
-repository = { type = "codeberg", username = "kero", repo = "lustre_websocket" }
+repository = { type = "codeberg", user = "kero", repo = "lustre_websocket" }
 links = [
     { title = "Package", href = "https://hex.pm/packages/lustre_websocket" },
 ]
