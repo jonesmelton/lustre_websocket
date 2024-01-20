@@ -92,4 +92,4 @@ pub fn send(ws: WebSocket, msg: String) -> Effect(a) {
 fn do_send(ws ws: WebSocket, msg msg: String) -> Nil
 
 @external(javascript, "./ffi.mjs", "close")
-pub fn close(ws ws: WebSocket) -> Nil
+pub fn close(ws ws: WebSocket) -> Effect(a)
