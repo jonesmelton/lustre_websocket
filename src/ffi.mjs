@@ -35,3 +35,5 @@ export const register_websocket_handler = (ws, on_open, on_message, on_close) =>
 export const send_over_websocket = (ws, msg) => {
     ws.send(msg)
 }
+
+export const close = ws => ws.close()
