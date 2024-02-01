@@ -41,8 +41,8 @@ pub type WebSocketEvent {
 /// Initialize a websocket. These constructs are fully asynchronous, so you must provide a wrapper
 /// that takes a `WebSocketEvent` and turns it into a lustre message of your application.
 pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
-  let ws = do_init(path)
   let fun = fn(dispatch) {
+    let ws = do_init(path)
     let on_open = fn() { dispatch(wrapper(OnOpen(ws))) }
     let on_message = fn(in_msg) { dispatch(wrapper(OnMessage(in_msg))) }
     let on_close = fn(code) {
