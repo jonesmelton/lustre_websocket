@@ -3,11 +3,7 @@ let ws_handler_registry = {}
 export const init_websocket = path => {
     let ws
     if (typeof WebSocket === "function") {
-        // we're in the browser
-        let url = new URL(document.URL)
-        let protocol = url.protocol === "http:" ? "ws" : "wss"
-        let ws_url = protocol + "://" + url.host + (path.startsWith("/") ? path : url.pathname + path)
-        ws = new WebSocket(ws_url)
+        ws = new WebSocket(get_ws_url(path))
     } else {
         // we're NOT in the browser, prolly running tests
         ws = {}
@@ -29,9 +25,10 @@ export const register_websocket_handler = (ws, on_open, on_message, on_close) =>
     reg_entry.on_open = on_open
     reg_entry.on_message = on_message
     reg_entry.on_close = on_close
-    console.log("ws reg", ws_handler_registry)
 }
 
 export const send_over_websocket = (ws, msg) => ws.send(msg)
 
 export const close = ws => ws.close()
+
+export const get_page_url = () => document.URL;
