@@ -1,9 +1,9 @@
 let ws_handler_registry = {}
 
-export const init_websocket = path => {
+export const init_websocket = url => {
     let ws
     if (typeof WebSocket === "function") {
-        ws = new WebSocket(get_ws_url(path))
+        ws = new WebSocket(url)
     } else {
         // we're NOT in the browser, prolly running tests
         ws = {}
