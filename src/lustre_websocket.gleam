@@ -1,5 +1,5 @@
 import lustre/effect.{type Effect}
-import gleam/option.{type Option, Some, None}
+import gleam/option.{None, Some}
 import gleam/result
 import gleam/uri.{type Uri, Uri}
 
@@ -44,6 +44,11 @@ pub type WebSocketEvent {
 
 /// Initialize a websocket. These constructs are fully asynchronous, so you must provide a wrapper
 /// that takes a `WebSocketEvent` and turns it into a lustre message of your application.
+/// If the path given is a URL, that is used.
+/// If the path is an absolute path, host and port are taken from
+/// document.URL, and scheme will become ws for http and wss for https.
+/// If the path is a relative path, ditto, but the the path will be
+/// relative to the path from document.URL
 pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
   let fun = fn(dispatch) {
     case get_websocket_path(path) {
@@ -83,28 +88,36 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
 }
 
 pub fn get_websocket_path(path) -> Result(String, Nil) {
-  do_get_websocket_path(path, page_uri())
+  page_uri()
+  |> result.try(do_get_websocket_path(path, _))
 }
 
-pub fn do_get_websocket_path(path: String, page_uri: Result(Uri, Nil)) -> Result(String, Nil) {
-  case uri.parse(path), page_uri {
-    Ok(path_uri), Ok(page_uri) -> {
-      use merged <- result.try(uri.merge(page_uri, path_uri))
-      let assert Some(merged_scheme) = merged.scheme
-      Uri(..merged, scheme: convert_scheme(merged_scheme))
-      |> uri.to_string
-      |> Ok
-    }
-    _, _ -> Error(Nil)
-  }
+pub fn do_get_websocket_path(path: String, page_uri: Uri) -> Result(String, Nil) {
+  let path_uri =
+    uri.parse(path)
+    |> result.unwrap(Uri(
+      scheme: None,
+      userinfo: None,
+      host: None,
+      port: None,
+      path: path,
+      query: None,
+      fragment: None,
+    ))
+  use merged <- result.try(uri.merge(page_uri, path_uri))
+  use merged_scheme <- result.try(option.to_result(merged.scheme, Nil))
+  use ws_scheme <- result.try(convert_scheme(merged_scheme))
+  Uri(..merged, scheme: Some(ws_scheme))
+  |> uri.to_string
+  |> Ok
 }
 
-fn convert_scheme(scheme: String) -> Option(String) {
+fn convert_scheme(scheme: String) -> Result(String, Nil) {
   case scheme {
-    "https" -> Some("wss")
-    "http" -> Some("ws")
-    "ws" | "wss" -> Some(scheme)
-    _ -> None
+    "https" -> Ok("wss")
+    "http" -> Ok("ws")
+    "ws" | "wss" -> Ok(scheme)
+    _ -> Error(Nil)
   }
 }
 
