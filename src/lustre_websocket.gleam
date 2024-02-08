@@ -1,5 +1,5 @@
 import lustre/effect.{type Effect}
-import gleam/option.{Some}
+import gleam/option.{type Option, Some, None}
 import gleam/result
 import gleam/uri.{type Uri, Uri}
 
@@ -82,35 +82,29 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
   effect.from(fun)
 }
 
-pub fn get_websocket_path(path: String) -> Result(String, Nil) {
-  case path {
-    "/" <> _ -> {
-      let page_url = do_get_page_url()
-      use uri <- result.try(uri.parse(page_url))
-      use scheme <- result.try(option.to_result(uri.scheme, Nil))
-      use scheme <- result.try(convert_scheme(scheme))
-      use hostname <- result.try(option.to_result(uri.host, Nil))
+pub fn get_websocket_path(path) -> Result(String, Nil) {
+  do_get_websocket_path(path, page_uri())
+}
 
-      Ok(scheme <> "://" <> hostname <> path)
-    }
-    _ -> {
-      use uri <- result.try(uri.parse(path))
-      use scheme <- result.try(option.to_result(uri.scheme, Nil))
-      use scheme <- result.try(convert_scheme(scheme))
-
-      Uri(..uri, scheme: Some(scheme))
-      |> uri.to_string()
+pub fn do_get_websocket_path(path: String, page_uri: Result(Uri, Nil)) -> Result(String, Nil) {
+  case uri.parse(path), page_uri {
+    Ok(path_uri), Ok(page_uri) -> {
+      use merged <- result.try(uri.merge(page_uri, path_uri))
+      let assert Some(merged_scheme) = merged.scheme
+      Uri(..merged, scheme: convert_scheme(merged_scheme))
+      |> uri.to_string
       |> Ok
     }
+    _, _ -> Error(Nil)
   }
 }
 
-fn convert_scheme(scheme: String) -> Result(String, Nil) {
+fn convert_scheme(scheme: String) -> Option(String) {
   case scheme {
-    "https" -> Ok("wss")
-    "http" -> Ok("ws")
-    "ws" | "wss" -> Ok(scheme)
-    _ -> Error(Nil)
+    "https" -> Some("wss")
+    "http" -> Some("ws")
+    "ws" | "wss" -> Some(scheme)
+    _ -> None
   }
 }
 
@@ -137,6 +131,11 @@ fn do_send(ws ws: WebSocket, msg msg: String) -> Nil
 
 @external(javascript, "./ffi.mjs", "close")
 pub fn close(ws ws: WebSocket) -> Effect(a)
+
+pub fn page_uri() -> Result(Uri, Nil) {
+  do_get_page_url()
+  |> uri.parse
+}
 
 @external(javascript, "./ffi.mjs", "get_page_url")
 pub fn do_get_page_url() -> String
