@@ -35,6 +35,24 @@ pub type WebSocketCloseReason {
   OtherCloseReason
 }
 
+fn code_to_reason(code: Int) -> WebSocketCloseReason {
+  case code {
+    1000 -> Normal
+    1001 -> GoingAway
+    1002 -> ProtocolError
+    1003 -> UnexpectedTypeOfData
+    1005 -> NoCodeFromServer
+    1006 -> AbnormalClose
+    1007 -> IncomprehensibleFrame
+    1008 -> PolicyViolated
+    1009 -> MessageTooBig
+    1010 -> FailedExtensionNegotation
+    1011 -> UnexpectedFailure
+    1015 -> FailedTLSHandshake
+    _ -> OtherCloseReason
+  }
+}
+
 pub type WebSocketEvent {
   InvalidUrl
   OnOpen(WebSocket)
@@ -50,41 +68,28 @@ pub type WebSocketEvent {
 /// If the path is a relative path, ditto, but the the path will be
 /// relative to the path from document.URL
 pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
-  let fun = fn(dispatch) {
+  fn(dispatch) {
     case get_websocket_path(path) {
-      Ok(path) -> {
-        let ws = do_init(path)
-        let on_open = fn() { dispatch(wrapper(OnOpen(ws))) }
-        let on_message = fn(in_msg) { dispatch(wrapper(OnMessage(in_msg))) }
-        let on_close = fn(code) {
-          case code {
-            1000 -> Normal
-            1001 -> GoingAway
-            1002 -> ProtocolError
-            1003 -> UnexpectedTypeOfData
-            1005 -> NoCodeFromServer
-            1006 -> AbnormalClose
-            1007 -> IncomprehensibleFrame
-            1008 -> PolicyViolated
-            1009 -> MessageTooBig
-            1010 -> FailedExtensionNegotation
-            1011 -> UnexpectedFailure
-            1015 -> FailedTLSHandshake
-            _ -> OtherCloseReason
-          }
-          |> OnClose
-          |> wrapper
-          |> dispatch
-        }
-        do_register(ws, on_open, on_message, on_close)
-      }
+      Ok(url) ->
+        do_init(
+          url,
+          fn(ws) { dispatch(wrapper(OnOpen(ws))) },
+          fn(in_msg) { dispatch(wrapper(OnMessage(in_msg))) },
+          fn(code) {
+            code
+            |> code_to_reason
+            |> OnClose
+            |> wrapper
+            |> dispatch
+          },
+        )
       _ ->
         InvalidUrl
         |> wrapper
         |> dispatch
     }
   }
-  effect.from(fun)
+  |> effect.from
 }
 
 pub fn get_websocket_path(path) -> Result(String, Nil) {
@@ -122,12 +127,9 @@ fn convert_scheme(scheme: String) -> Result(String, Nil) {
 }
 
 @external(javascript, "./ffi.mjs", "init_websocket")
-fn do_init(a: path) -> WebSocket
-
-@external(javascript, "./ffi.mjs", "register_websocket_handler")
-fn do_register(
-  ws ws: WebSocket,
-  on_open on_open: fn() -> Nil,
+fn do_init(
+  a: path,
+  on_open on_open: fn(WebSocket) -> Nil,
   on_message on_message: fn(String) -> Nil,
   on_close on_close: fn(Int) -> Nil,
 ) -> Nil

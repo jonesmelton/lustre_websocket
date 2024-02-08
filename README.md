@@ -32,6 +32,7 @@ The events can be handled like this:
 ```
 update(model, msg) {
   case msg {
+    WsWrapper(InvalidUrl) -> panic
     WsWrapper(OnOpen(socket)) -> #(Model(..model, ws: Some(socket)), ws.send(socket, "client-init"))
     WsWrapper(OnMessage(msg)) -> todo
     WsWrapper(OnClose(reason)) -> #(Model(..model, ws: None), effect.none())
@@ -47,7 +48,6 @@ which also demonstrates how you send a text message over the socket.
 ### TODO:
  * support protocol choice, including one websocket per protocol per endpoint
  * support binary data
- * allow client to close the socket
  * provide errors to the application, when I have a clue on what those might actually be
  * prevent sending over closed sockets
  * maybe auto-reopen sockets that were closed because of Normal
