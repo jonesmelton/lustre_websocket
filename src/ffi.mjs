@@ -1,4 +1,4 @@
-export const init_websocket = (url, on_open, on_message, on_close) => {
+export const init_websocket = (url, on_open, on_text, on_binary, on_close) => {
     let ws
     if (typeof WebSocket === "function") {
         ws = new WebSocket(url)
@@ -8,10 +8,14 @@ export const init_websocket = (url, on_open, on_message, on_close) => {
     }
 
     ws.onopen = _ => on_open(ws)
-    ws.onmessage = event => on_message(event.data)
+    ws.onmessage = event => {
+      if (typeof event.data === "string") {
+        on_text(event.data)
+      } else {
+        on_binary(event.data)
+      }
+    }
     ws.onclose = event => on_close(event.code)
-
-    return ws
 }
 
 export const send_over_websocket = (ws, msg) => ws.send(msg)

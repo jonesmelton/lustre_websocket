@@ -56,7 +56,8 @@ fn code_to_reason(code: Int) -> WebSocketCloseReason {
 pub type WebSocketEvent {
   InvalidUrl
   OnOpen(WebSocket)
-  OnMessage(String)
+  OnTextMessage(String)
+  OnBinaryMessage(BitArray)
   OnClose(WebSocketCloseReason)
 }
 
@@ -74,7 +75,8 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
         do_init(
           url,
           fn(ws) { dispatch(wrapper(OnOpen(ws))) },
-          fn(in_msg) { dispatch(wrapper(OnMessage(in_msg))) },
+          fn(text) { dispatch(wrapper(OnTextMessage(text))) },
+          fn(data) { dispatch(wrapper(OnBinaryMessage(data))) },
           fn(code) {
             code
             |> code_to_reason
@@ -130,7 +132,8 @@ fn convert_scheme(scheme: String) -> Result(String, Nil) {
 fn do_init(
   a: path,
   on_open on_open: fn(WebSocket) -> Nil,
-  on_message on_message: fn(String) -> Nil,
+  on_text on_text: fn(String) -> Nil,
+  on_binary on_binary: fn(BitArray) -> Nil,
   on_close on_close: fn(Int) -> Nil,
 ) -> Nil
 
