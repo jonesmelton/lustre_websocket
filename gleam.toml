@@ -11,5 +11,5 @@ links = [
 dev-dependencies = { gleeunit = "~> 1.0"}
 
 [dependencies]
-gleam_stdlib = "~> 0.32"
+gleam_stdlib = "~> 0.32 or ~> 1.0"
 lustre = "~> 3.0 or ~> 4.0"
