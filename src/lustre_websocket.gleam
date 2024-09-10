@@ -1,7 +1,7 @@
-import lustre/effect.{type Effect}
 import gleam/option.{None, Some}
 import gleam/result
 import gleam/uri.{type Uri, Uri}
+import lustre/effect.{type Effect}
 
 pub type WebSocket
 
@@ -94,6 +94,42 @@ pub fn init(path: String, wrapper: fn(WebSocketEvent) -> a) -> Effect(a) {
   |> effect.from
 }
 
+pub type BinaryType {
+  ArrayBuffer
+  Blob
+}
+
+pub fn init_with_binary_type(
+  path: String,
+  binary_type: BinaryType,
+  wrapper: fn(WebSocketEvent) -> a,
+) -> Effect(a) {
+  fn(dispatch) {
+    case get_websocket_path(path) {
+      Ok(url) ->
+        do_init_with_binary_type(
+          url,
+          binary_type,
+          fn(ws) { dispatch(wrapper(OnOpen(ws))) },
+          fn(text) { dispatch(wrapper(OnTextMessage(text))) },
+          fn(data) { dispatch(wrapper(OnBinaryMessage(data))) },
+          fn(code) {
+            code
+            |> code_to_reason
+            |> OnClose
+            |> wrapper
+            |> dispatch
+          },
+        )
+      _ ->
+        InvalidUrl
+        |> wrapper
+        |> dispatch
+    }
+  }
+  |> effect.from
+}
+
 pub fn get_websocket_path(path) -> Result(String, Nil) {
   page_uri()
   |> result.try(do_get_websocket_path(path, _))
@@ -131,6 +167,16 @@ fn convert_scheme(scheme: String) -> Result(String, Nil) {
 @external(javascript, "./ffi.mjs", "init_websocket")
 fn do_init(
   a: path,
+  on_open on_open: fn(WebSocket) -> Nil,
+  on_text on_text: fn(String) -> Nil,
+  on_binary on_binary: fn(BitArray) -> Nil,
+  on_close on_close: fn(Int) -> Nil,
+) -> Nil
+
+@external(javascript, "./ffi.mjs", "init_websocket_with_binary_type")
+fn do_init_with_binary_type(
+  a: path,
+  binary_type: BinaryType,
   on_open on_open: fn(WebSocket) -> Nil,
   on_text on_text: fn(String) -> Nil,
   on_binary on_binary: fn(BitArray) -> Nil,
