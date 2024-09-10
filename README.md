@@ -1,5 +1,7 @@
 # lustre_websocket
 
+fork of [lustre_websocket](https://codeberg.org/kero/lustre_websocket)
+
 [![Package Version](https://img.shields.io/hexpm/v/lustre_websocket)](https://hex.pm/packages/lustre_websocket)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/lustre_websocket/)
 
